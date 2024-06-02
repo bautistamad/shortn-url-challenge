@@ -4,6 +4,8 @@ services:
   nginx:
       restart: always
       image: nginx:latest
+      extra_hosts:
+        - "host.docker.internal:host-gateway"
       ports:
         - 80:80
       volumes:

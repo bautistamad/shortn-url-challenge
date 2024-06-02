@@ -19,9 +19,9 @@ type RedisConfig struct {
 
 var (
 	ErrCreateClient = errors.New("failed to create Redis client")
-	ErrSavingUrl    = errors.New("failed to save url")
-	ErrGettingUrl   = errors.New("failed to get url")
-	ErrDeletingUrl  = errors.New("failed to delete url")
+	ErrSavingUrl    = errors.New("failed to save url in redis")
+	ErrGettingUrl   = errors.New("failed to get url from redis")
+	ErrDeletingUrl  = errors.New("failed to delete url in redis")
 )
 
 type RedisRepository struct {
