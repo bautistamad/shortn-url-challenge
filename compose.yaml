@@ -1,0 +1,26 @@
+include:
+  - ./infra/db.yaml
+services:
+  nginx:
+      restart: always
+      image: nginx:latest
+      ports:
+        - 80:80
+      volumes:
+        - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      depends_on:
+        - api
+  api:
+    build:
+      context: ./url-shortener
+      dockerfile: Dockerfile
+    container_name: url-shortener-api
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_started
+        restart: true
+      redis-stack-server:
+        condition: service_started
+    restart: always
