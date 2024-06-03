@@ -35,11 +35,6 @@ type PostgresRepository struct {
 	client *gorm.DB
 }
 
-// GetLongUrlByLongUrl implements ports.DatabaseUrlRepository.
-func (d *PostgresRepository) GetLongUrlByLongUrl(string) (string, error) {
-	panic("unimplemented")
-}
-
 var _ ports.DatabaseUrlRepository = new(PostgresRepository)
 
 func GetPGClient(config PostgresConfig) (ports.DatabaseUrlRepository, error) {
@@ -78,7 +73,6 @@ func getConnectionString(config PostgresConfig) string {
 		sslMode)
 }
 
-// SaveShortenUrl implements ports.DBRepository.
 func (d *PostgresRepository) SaveShortenUrl(shortUrl string, longUrl string) (string, error) {
 
 	var newUrl entities.URL
@@ -110,6 +104,23 @@ func (d *PostgresRepository) GetLongUrl(shortUrl string) (string, error) {
 	var resultUrl entities.URL
 
 	result := d.client.Where("shorturl = ?", shortUrl).Select("longurl").First(&resultUrl)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return "", ports.ErrUrlNotFound
+		}
+
+		return "", errGetURL
+	}
+
+	return resultUrl.LongURL, nil
+}
+
+// GetLongUrlByLongUrl implements ports.DatabaseUrlRepository.
+func (d *PostgresRepository) GetLongUrlByLongUrl(longUrl string) (string, error) {
+	var resultUrl entities.URL
+
+	result := d.client.Where("longurl = ?", longUrl).Select("longurl").First(&resultUrl)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
