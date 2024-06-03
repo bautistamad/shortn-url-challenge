@@ -64,7 +64,7 @@ func (h *HTTPHandler) handleRedirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, longURL, http.StatusFound)
+	http.Redirect(w, r, longURL, http.StatusMovedPermanently)
 }
 
 func (h *HTTPHandler) handleDeleteURL(w http.ResponseWriter, r *http.Request) {

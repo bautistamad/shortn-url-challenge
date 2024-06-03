@@ -51,20 +51,21 @@ func (s *Shortener) DeleteUrl(shortUrl string) (string, error) {
 		ShortURL: shortUrl,
 	}
 
-	deletedUrl, err := s.dbRepository.DeleteShortenUrl(url)
+	err := s.dbRepository.DeleteShortenUrl(url)
 
 	if err != nil {
 		err = errors.Join(errDeleteUrl, err)
 		return "", err
 	}
 
-	_, err = s.cacheRepository.GetLongUrl(shortUrl)
+	deletedUrl, err := s.cacheRepository.GetLongUrl(shortUrl)
 
 	if err != nil {
 		log.Printf("url is not in cache %s", deletedUrl)
 		return deletedUrl, nil
 	}
-	_, err = s.cacheRepository.DeleteShortenUrl(url)
+
+	err = s.cacheRepository.DeleteShortenUrl(url)
 
 	if err != nil {
 		log.Println("error deleting data from cache")
@@ -77,7 +78,7 @@ func (s *Shortener) GetLongUrl(key string) (string, error) {
 
 	longUrl, err := s.cacheRepository.GetLongUrl(defaultShortUrl + key)
 
-	if err != nil {
+	if longUrl == "" && err == nil {
 		log.Printf("url not found on cache %s", longUrl)
 
 		longUrl, err = s.dbRepository.GetLongUrl(defaultShortUrl + key)

@@ -89,14 +89,14 @@ func (d *PostgresRepository) SaveShortenUrl(shortUrl string, longUrl string) (st
 }
 
 // DeleteShortenUrl implements ports.DBRepository.
-func (d *PostgresRepository) DeleteShortenUrl(url entities.URL) (string, error) {
+func (d *PostgresRepository) DeleteShortenUrl(url entities.URL) error {
 	result := d.client.Where("shorturl = ?", url.ShortURL).Delete(url)
 
 	if result.Error != nil {
-		return "", errors.Join(errDeleteURL, result.Error)
+		return errors.Join(errDeleteURL, result.Error)
 	}
 
-	return url.ShortURL, nil
+	return nil
 }
 
 func (d *PostgresRepository) GetLongUrl(shortUrl string) (string, error) {
@@ -113,10 +113,9 @@ func (d *PostgresRepository) GetLongUrl(shortUrl string) (string, error) {
 		return "", errGetURL
 	}
 
-	return resultUrl.LongURL, nil
+	return resultUrl.LongURL, result.Error
 }
 
-// GetLongUrlByLongUrl implements ports.DatabaseUrlRepository.
 func (d *PostgresRepository) GetLongUrlByLongUrl(longUrl string) (string, error) {
 	var resultUrl entities.URL
 
@@ -130,5 +129,5 @@ func (d *PostgresRepository) GetLongUrlByLongUrl(longUrl string) (string, error)
 		return "", errGetURL
 	}
 
-	return resultUrl.LongURL, nil
+	return resultUrl.LongURL, result.Error
 }

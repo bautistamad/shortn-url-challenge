@@ -69,13 +69,13 @@ func (d *RedisRepository) SaveShortenUrl(shortUrl string, longUrl string) (strin
 	return shortUrl, nil
 }
 
-func (d *RedisRepository) DeleteShortenUrl(url entities.URL) (string, error) {
+func (d *RedisRepository) DeleteShortenUrl(url entities.URL) error {
 	ctx := context.Background()
 
 	err := d.client.Del(ctx, url.ShortURL).Err()
 	if err != nil {
-		return "", ErrDeletingUrl
+		return ErrDeletingUrl
 	}
 
-	return url.ShortURL, nil
+	return nil
 }
