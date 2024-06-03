@@ -9,9 +9,6 @@ var (
 	ErrUrlNotFound = errors.New("failed top get shorturl")
 )
 
-type HTTPShortenHandler interface {
-}
-
 type CacheUrlRepository interface {
 	GetLongUrl(string) (string, error)
 	SaveShortenUrl(string, string) (string, error)

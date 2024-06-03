@@ -71,6 +71,7 @@ func (h *HTTPHandler) handleDeleteURL(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	shortURL := vars["shortURL"]
 
+	//validate
 	_, err := h.shortenerService.DeleteUrl(shortURL)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
