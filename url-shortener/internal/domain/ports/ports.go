@@ -12,10 +12,17 @@ var (
 type HTTPShortenHandler interface {
 }
 
-type UrlRepository interface {
+type CacheUrlRepository interface {
 	GetLongUrl(string) (string, error)
 	SaveShortenUrl(string, string) (string, error)
 	DeleteShortenUrl(entities.URL) (string, error)
+}
+
+type DatabaseUrlRepository interface {
+	GetLongUrl(string) (string, error)
+	SaveShortenUrl(string, string) (string, error)
+	DeleteShortenUrl(entities.URL) (string, error)
+	GetLongUrlByLongUrl(string) (string, error)
 }
 
 type ShorternService interface {

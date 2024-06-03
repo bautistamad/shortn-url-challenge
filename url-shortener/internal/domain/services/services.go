@@ -20,13 +20,13 @@ var (
 )
 
 type Shortener struct {
-	cacheRepository ports.UrlRepository
-	dbRepository    ports.UrlRepository
+	cacheRepository ports.CacheUrlRepository
+	dbRepository    ports.DatabaseUrlRepository
 }
 
 var _ ports.ShorternService = new(Shortener)
 
-func NewShortenerService(cacheRepo ports.UrlRepository, dbRepo ports.UrlRepository) *Shortener {
+func NewShortenerService(cacheRepo ports.CacheUrlRepository, dbRepo ports.DatabaseUrlRepository) *Shortener {
 	return &Shortener{
 		cacheRepository: cacheRepo,
 		dbRepository:    dbRepo,
@@ -34,7 +34,7 @@ func NewShortenerService(cacheRepo ports.UrlRepository, dbRepo ports.UrlReposito
 }
 
 func (s *Shortener) CreateShortUrl(longUrl string) (string, error) {
-
+	// validate if long url exist in db
 	shortUrl, err := s.dbRepository.SaveShortenUrl(defaultShortUrl+generateShortKey(), longUrl)
 
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *Shortener) DeleteUrl(shortUrl string) (string, error) {
 	_, err = s.cacheRepository.DeleteShortenUrl(url)
 
 	if err != nil {
-		log.Println("error deleted data from cache")
+		log.Println("error deleting data from cache")
 	}
 
 	return deletedUrl, nil
@@ -79,18 +79,19 @@ func (s *Shortener) GetLongUrl(key string) (string, error) {
 
 	if err != nil {
 		log.Printf("url not found on cache %s", longUrl)
-	}
 
-	longUrl, err = s.dbRepository.GetLongUrl(defaultShortUrl + key)
+		longUrl, err = s.dbRepository.GetLongUrl(defaultShortUrl + key)
 
-	if err != nil {
-		return "", errors.Join(errGetUrl, err)
-	}
+		if err != nil {
+			return "", errors.Join(errGetUrl, err)
+		}
 
-	_, err = s.cacheRepository.SaveShortenUrl(defaultShortUrl+key, longUrl)
+		_, err = s.cacheRepository.SaveShortenUrl(defaultShortUrl+key, longUrl)
 
-	if err != nil {
-		log.Printf("cant save url on cache %s", defaultShortUrl+key)
+		if err != nil {
+			log.Printf("cant save url on cache %s", defaultShortUrl+key)
+		}
+
 	}
 
 	return longUrl, nil

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 	"url-shortener/internal/adapters/handler"
-	repository "url-shortener/internal/adapters/repository"
+	"url-shortener/internal/adapters/repository"
 	"url-shortener/internal/domain/services"
 
 	"github.com/gorilla/mux"

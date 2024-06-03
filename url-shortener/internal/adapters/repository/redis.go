@@ -28,9 +28,9 @@ type RedisRepository struct {
 	client *redis.Client
 }
 
-var _ ports.UrlRepository = new(RedisRepository)
+var _ ports.CacheUrlRepository = new(RedisRepository)
 
-func GetRedisClient(config RedisConfig) (ports.UrlRepository, error) {
+func GetRedisClient(config RedisConfig) (ports.CacheUrlRepository, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     config.Address + ":" + config.Port,
 		Password: config.Password,

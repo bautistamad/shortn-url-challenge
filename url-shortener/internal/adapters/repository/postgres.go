@@ -35,9 +35,14 @@ type PostgresRepository struct {
 	client *gorm.DB
 }
 
-var _ ports.UrlRepository = new(PostgresRepository)
+// GetLongUrlByLongUrl implements ports.DatabaseUrlRepository.
+func (d *PostgresRepository) GetLongUrlByLongUrl(string) (string, error) {
+	panic("unimplemented")
+}
 
-func GetPGClient(config PostgresConfig) (ports.UrlRepository, error) {
+var _ ports.DatabaseUrlRepository = new(PostgresRepository)
+
+func GetPGClient(config PostgresConfig) (ports.DatabaseUrlRepository, error) {
 	connectionString := getConnectionString(config)
 
 	client, err := gorm.Open(postgres.New(postgres.Config{
