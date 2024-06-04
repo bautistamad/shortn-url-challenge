@@ -149,7 +149,8 @@ func (d *PostgresRepository) GetUrlStats(shortUrl string) (entities.URL, error) 
 }
 
 func (d *PostgresRepository) IncrementAccessCount(shortUrl string) error {
-	result := d.client.Model(&entities.URL{}).Where("shorturl = ?", shortUrl).Update("access_count", gorm.Expr("access_count + 1"))
+	result := d.client.Model(&entities.URL{}).Where("shorturl = ?", shortUrl).
+		Update("access_count", gorm.Expr("access_count + 1"))
 	if result.Error != nil {
 		return errors.Join(errUpdateURL, result.Error)
 	}

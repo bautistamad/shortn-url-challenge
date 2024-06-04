@@ -78,9 +78,12 @@ func (s *Shortener) DeleteUrl(key string) (string, error) {
 func (s *Shortener) GetLongUrl(key string) (string, error) {
 	longUrl, err := s.cacheRepository.GetLongUrl(defaultShortUrl + key)
 	if err != nil {
-		log.Printf("error getting URL from cache: %v", err)
+		if !errors.Is(err, ports.ErrUrlNotFound) {
+			log.Printf("error getting URL from cache: %v", err)
+		}
+
 	} else if longUrl != "" {
-		if err = s.dbRepository.IncrementAccessCount(key); err != nil {
+		if err = s.dbRepository.IncrementAccessCount(defaultShortUrl + key); err != nil {
 			log.Printf("error incrementing access count for URL %s: %v", key, err)
 		}
 		return longUrl, nil
@@ -88,6 +91,7 @@ func (s *Shortener) GetLongUrl(key string) (string, error) {
 
 	log.Printf("URL not found in cache: %s", longUrl)
 	longUrl, err = s.dbRepository.GetLongUrl(defaultShortUrl + key)
+
 	if err != nil {
 		if errors.Is(err, ports.ErrUrlNotFound) {
 			log.Printf("url not found on database")
@@ -98,10 +102,12 @@ func (s *Shortener) GetLongUrl(key string) (string, error) {
 	}
 
 	if _, err := s.cacheRepository.SaveShortenUrl(defaultShortUrl+key, longUrl); err != nil {
-		log.Printf("can't save URL on cache: %v", err)
+		if !errors.Is(err, ports.ErrUrlNotFound) {
+			log.Printf("can't save URL on cache: %v", err)
+		}
 	}
 
-	if err := s.dbRepository.IncrementAccessCount(key); err != nil {
+	if err := s.dbRepository.IncrementAccessCount(defaultShortUrl + key); err != nil {
 		log.Printf("error incrementing access count for URL %s: %v", key, err)
 	}
 
