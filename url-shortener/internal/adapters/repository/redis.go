@@ -51,7 +51,7 @@ func (d *RedisRepository) GetLongUrl(shortUrl string) (string, error) {
 	longUrl, err := d.client.Get(ctx, shortUrl).Result()
 	if err != nil {
 		if err == redis.Nil {
-			return "", nil
+			return "", ports.ErrUrlNotFound
 		}
 		return "", ErrGettingUrl
 	}

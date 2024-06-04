@@ -91,9 +91,12 @@ func (d *PostgresRepository) SaveShortenUrl(shortUrl string, longUrl string) (st
 // DeleteShortenUrl implements ports.DBRepository.
 func (d *PostgresRepository) DeleteShortenUrl(url entities.URL) error {
 	result := d.client.Where("shorturl = ?", url.ShortURL).Delete(url)
-
 	if result.Error != nil {
 		return errors.Join(errDeleteURL, result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return ports.ErrUrlNotFound
 	}
 
 	return nil

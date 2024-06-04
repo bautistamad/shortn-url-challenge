@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"url-shortener/internal/domain/ports"
 
@@ -71,16 +72,25 @@ func (h *HTTPHandler) handleDeleteURL(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	shortURL := vars["shortURL"]
 
-	//validate
-	_, err := h.shortenerService.DeleteUrl(shortURL)
+	// Eliminar la URL
+	deletedUrl, err := h.shortenerService.DeleteUrl(shortURL)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		if errors.Is(err, ports.ErrUrlNotFound) {
+			http.Error(w, "URL not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Internal server error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	response := struct {
-		Message string `json:"message"`
-	}{Message: "URL deleted successfully"}
+		Message    string `json:"message"`
+		DeletedURL string `json:"deleted_url,omitempty"`
+	}{
+		Message:    "URL deleted successfully",
+		DeletedURL: deletedUrl,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

@@ -45,54 +45,54 @@ func (s *Shortener) CreateShortUrl(longUrl string) (string, error) {
 	return shortUrl, nil
 }
 
-func (s *Shortener) DeleteUrl(shortUrl string) (string, error) {
-
+func (s *Shortener) DeleteUrl(key string) (string, error) {
 	url := entities.URL{
-		ShortURL: shortUrl,
+		ShortURL: defaultShortUrl + key,
 	}
 
 	err := s.dbRepository.DeleteShortenUrl(url)
-
 	if err != nil {
-		err = errors.Join(errDeleteUrl, err)
-		return "", err
+		if errors.Is(err, ports.ErrUrlNotFound) {
+			return "", ports.ErrUrlNotFound
+		}
+		return "", errors.Join(errDeleteUrl, err)
 	}
 
-	deletedUrl, err := s.cacheRepository.GetLongUrl(shortUrl)
-
+	urlToDelete, err := s.cacheRepository.GetLongUrl(url.ShortURL)
 	if err != nil {
-		log.Printf("url is not in cache %s", deletedUrl)
-		return deletedUrl, nil
+		if errors.Is(err, ports.ErrUrlNotFound) {
+			log.Printf("url is not in cache %s", url.ShortURL)
+			return "", nil
+		}
+	} else {
+		err = s.cacheRepository.DeleteShortenUrl(url)
+		if err != nil {
+			log.Println("error deleting data from cache")
+		}
 	}
 
-	err = s.cacheRepository.DeleteShortenUrl(url)
-
-	if err != nil {
-		log.Println("error deleting data from cache")
-	}
-
-	return deletedUrl, nil
+	return urlToDelete, nil
 }
 
 func (s *Shortener) GetLongUrl(key string) (string, error) {
-
 	longUrl, err := s.cacheRepository.GetLongUrl(defaultShortUrl + key)
 
-	if longUrl == "" && err == nil {
+	if err != nil {
+		return "", errors.Join(errGetUrl, err)
+	}
+
+	if longUrl == "" {
 		log.Printf("url not found on cache %s", longUrl)
 
 		longUrl, err = s.dbRepository.GetLongUrl(defaultShortUrl + key)
-
 		if err != nil {
 			return "", errors.Join(errGetUrl, err)
 		}
 
 		_, err = s.cacheRepository.SaveShortenUrl(defaultShortUrl+key, longUrl)
-
 		if err != nil {
 			log.Printf("cant save url on cache %s", defaultShortUrl+key)
 		}
-
 	}
 
 	return longUrl, nil
