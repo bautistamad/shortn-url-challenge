@@ -136,16 +136,16 @@ func (d *PostgresRepository) GetLongUrlByLongUrl(longUrl string) (string, error)
 	return resultUrl.LongURL, result.Error
 }
 
-func (d *PostgresRepository) GetUrlStats(shortUrl string) (entities.URL, error) {
+func (d *PostgresRepository) GetUrlStats(shortUrl string) (*entities.URL, error) {
 	var url entities.URL
 	result := d.client.Where("shorturl = ?", shortUrl).First(&url)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return entities.URL{}, ports.ErrUrlNotFound
+			return &entities.URL{}, ports.ErrUrlNotFound
 		}
-		return entities.URL{}, errors.Join(errGetURL, result.Error)
+		return &entities.URL{}, errors.Join(errGetURL, result.Error)
 	}
-	return url, nil
+	return &url, nil
 }
 
 func (d *PostgresRepository) IncrementAccessCount(shortUrl string) error {

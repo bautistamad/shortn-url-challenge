@@ -114,12 +114,12 @@ func (s *Shortener) GetLongUrl(key string) (string, error) {
 	return longUrl, nil
 }
 
-func (s *Shortener) GetUrlStats(key string) (entities.URL, error) {
+func (s *Shortener) GetUrlStats(key string) (*entities.URL, error) {
 	shortUrl := defaultShortUrl + key
 
 	urlStats, err := s.dbRepository.GetUrlStats(shortUrl)
 	if err != nil {
-		return entities.URL{}, errors.Join(errGetUrlStats, err)
+		return &entities.URL{}, errors.Join(errGetUrlStats, err)
 	}
 
 	return urlStats, nil

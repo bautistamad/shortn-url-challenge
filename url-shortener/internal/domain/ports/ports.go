@@ -20,7 +20,7 @@ type DatabaseUrlRepository interface {
 	SaveShortenUrl(string, string) (string, error)
 	DeleteShortenUrl(entities.URL) error
 	GetLongUrlByLongUrl(string) (string, error)
-	GetUrlStats(string) (entities.URL, error)
+	GetUrlStats(string) (*entities.URL, error)
 	IncrementAccessCount(shortUrl string) error
 }
 
@@ -28,5 +28,5 @@ type ShorternService interface {
 	GetLongUrl(string) (string, error)
 	CreateShortUrl(string) (string, error)
 	DeleteUrl(string) (string, error)
-	GetUrlStats(string) (entities.URL, error)
+	GetUrlStats(string) (*entities.URL, error)
 }
