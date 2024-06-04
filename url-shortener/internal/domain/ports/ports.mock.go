@@ -68,19 +68,16 @@ func NewMockShorternService(mkSer MockShorternServiceType) *MockShorternService 
 	return service
 }
 
-// DeleteUrl implements ShorternService.
 func (m *MockShorternService) DeleteUrl(shortUrl string) (string, error) {
 	args := m.Called(shortUrl)
 	return args.String(0), args.Error(1)
 }
 
-// GetLongUrl implements ShorternService.
 func (m *MockShorternService) GetLongUrl(key string) (string, error) {
 	args := m.Called(key)
 	return args.String(0), args.Error(1)
 }
 
-// GetUrlStats implements ShorternService.
 func (m *MockShorternService) GetUrlStats(shortUrl string) (*entities.URL, error) {
 	args := m.Called(shortUrl)
 
@@ -92,7 +89,6 @@ func (m *MockShorternService) GetUrlStats(shortUrl string) (*entities.URL, error
 	return args.Get(0).(*entities.URL), args.Error(1)
 }
 
-// CreateShortUrl implements ShorternService.
 func (m *MockShorternService) CreateShortUrl(longUrl string) (string, error) {
 	args := m.Called(longUrl)
 	return args.String(0), args.Error(1)
