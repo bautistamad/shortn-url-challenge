@@ -73,7 +73,6 @@ func (h *HTTPHandler) handleDeleteURL(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	shortURL := vars["shortURL"]
 
-	// Eliminar la URL
 	deletedUrl, err := h.shortenerService.DeleteUrl(shortURL)
 	if err != nil {
 		if errors.Is(err, ports.ErrUrlNotFound) {
@@ -103,7 +102,6 @@ func (h *HTTPHandler) handleGetUrlStats(w http.ResponseWriter, r *http.Request) 
 	vars := mux.Vars(r)
 	shortURL := vars["shortURL"]
 
-	// Obtener las estadísticas de la URL
 	urlStats, err := h.shortenerService.GetUrlStats(shortURL)
 	if err != nil {
 		if errors.Is(err, ports.ErrUrlNotFound) {
