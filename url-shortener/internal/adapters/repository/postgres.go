@@ -29,6 +29,7 @@ var (
 	errSaveURL        = errors.New("failed save new url to postgres")
 	errDeleteURL      = errors.New("failed to delete url in postgres")
 	errGetURL         = errors.New("failed to get url from postgres")
+	errUpdateURL      = errors.New("failed to update url in postgres")
 )
 
 type PostgresRepository struct {
@@ -133,4 +134,24 @@ func (d *PostgresRepository) GetLongUrlByLongUrl(longUrl string) (string, error)
 	}
 
 	return resultUrl.LongURL, result.Error
+}
+
+func (d *PostgresRepository) GetUrlStats(shortUrl string) (entities.URL, error) {
+	var url entities.URL
+	result := d.client.Where("shorturl = ?", shortUrl).First(&url)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return entities.URL{}, ports.ErrUrlNotFound
+		}
+		return entities.URL{}, errors.Join(errGetURL, result.Error)
+	}
+	return url, nil
+}
+
+func (d *PostgresRepository) IncrementAccessCount(shortUrl string) error {
+	result := d.client.Model(&entities.URL{}).Where("shorturl = ?", shortUrl).Update("access_count", gorm.Expr("access_count + 1"))
+	if result.Error != nil {
+		return errors.Join(errUpdateURL, result.Error)
+	}
+	return nil
 }

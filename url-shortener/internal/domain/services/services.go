@@ -14,9 +14,10 @@ const (
 )
 
 var (
-	errSavingUrl = errors.New("failed to save url")
-	errDeleteUrl = errors.New("failed to delete url")
-	errGetUrl    = errors.New("failed to get long url")
+	errSavingUrl   = errors.New("failed to save url")
+	errDeleteUrl   = errors.New("failed to delete url")
+	errGetUrl      = errors.New("failed to get long url")
+	errGetUrlStats = errors.New("failed to get url stats")
 )
 
 type Shortener struct {
@@ -95,7 +96,25 @@ func (s *Shortener) GetLongUrl(key string) (string, error) {
 		}
 	}
 
+	err = s.dbRepository.IncrementAccessCount(key)
+
+	if err != nil {
+		log.Printf("error incrementing access count for url %s: %v", key, err)
+	}
+
 	return longUrl, nil
+}
+
+func (s *Shortener) GetUrlStats(key string) (entities.URL, error) {
+	shortUrl := defaultShortUrl + key
+
+	// Obtener las estadísticas de la base de datos
+	urlStats, err := s.dbRepository.GetUrlStats(shortUrl)
+	if err != nil {
+		return entities.URL{}, errors.Join(errGetUrlStats, err)
+	}
+
+	return urlStats, nil
 }
 
 func generateShortKey() string {

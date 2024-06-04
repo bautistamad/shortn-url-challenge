@@ -28,6 +28,7 @@ func (h *HTTPHandler) RegisterRoutes() {
 	h.router.HandleFunc("/shorten", h.handleShortenURL).Methods("POST")
 	h.router.HandleFunc("/{shortURL}", h.handleRedirect).Methods("GET")
 	h.router.HandleFunc("/{shortURL}", h.handleDeleteURL).Methods("DELETE")
+	h.router.HandleFunc("/url/{shortURL}/stats", h.handleGetUrlStats).Methods("GET")
 }
 
 func (h *HTTPHandler) handleShortenURL(w http.ResponseWriter, r *http.Request) {
@@ -93,6 +94,28 @@ func (h *HTTPHandler) handleDeleteURL(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *HTTPHandler) handleGetUrlStats(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	shortURL := vars["shortURL"]
+
+	// Obtener las estadísticas de la URL
+	urlStats, err := h.shortenerService.GetUrlStats(shortURL)
+	if err != nil {
+		if errors.Is(err, ports.ErrUrlNotFound) {
+			http.Error(w, "URL not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Internal server error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(urlStats); err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
