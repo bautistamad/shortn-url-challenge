@@ -77,29 +77,32 @@ func (s *Shortener) DeleteUrl(key string) (string, error) {
 
 func (s *Shortener) GetLongUrl(key string) (string, error) {
 	longUrl, err := s.cacheRepository.GetLongUrl(defaultShortUrl + key)
-
 	if err != nil {
-		return "", errors.Join(errGetUrl, err)
+		log.Printf("error getting URL from cache: %v", err)
+	} else if longUrl != "" {
+		if err = s.dbRepository.IncrementAccessCount(key); err != nil {
+			log.Printf("error incrementing access count for URL %s: %v", key, err)
+		}
+		return longUrl, nil
 	}
 
-	if longUrl == "" {
-		log.Printf("url not found on cache %s", longUrl)
-
-		longUrl, err = s.dbRepository.GetLongUrl(defaultShortUrl + key)
-		if err != nil {
-			return "", errors.Join(errGetUrl, err)
+	log.Printf("URL not found in cache: %s", longUrl)
+	longUrl, err = s.dbRepository.GetLongUrl(defaultShortUrl + key)
+	if err != nil {
+		if errors.Is(err, ports.ErrUrlNotFound) {
+			log.Printf("url not found on database")
+			return "", nil
 		}
-
-		_, err = s.cacheRepository.SaveShortenUrl(defaultShortUrl+key, longUrl)
-		if err != nil {
-			log.Printf("cant save url on cache %s", defaultShortUrl+key)
-		}
+		log.Printf("error getting URL from database: %v", err)
+		return "", errGetUrl
 	}
 
-	err = s.dbRepository.IncrementAccessCount(key)
+	if _, err := s.cacheRepository.SaveShortenUrl(defaultShortUrl+key, longUrl); err != nil {
+		log.Printf("can't save URL on cache: %v", err)
+	}
 
-	if err != nil {
-		log.Printf("error incrementing access count for url %s: %v", key, err)
+	if err := s.dbRepository.IncrementAccessCount(key); err != nil {
+		log.Printf("error incrementing access count for URL %s: %v", key, err)
 	}
 
 	return longUrl, nil
@@ -108,7 +111,6 @@ func (s *Shortener) GetLongUrl(key string) (string, error) {
 func (s *Shortener) GetUrlStats(key string) (entities.URL, error) {
 	shortUrl := defaultShortUrl + key
 
-	// Obtener las estadísticas de la base de datos
 	urlStats, err := s.dbRepository.GetUrlStats(shortUrl)
 	if err != nil {
 		return entities.URL{}, errors.Join(errGetUrlStats, err)

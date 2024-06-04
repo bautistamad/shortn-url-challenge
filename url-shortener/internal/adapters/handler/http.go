@@ -27,7 +27,7 @@ func NewHTTPHandler(
 func (h *HTTPHandler) RegisterRoutes() {
 	h.router.HandleFunc("/shorten", h.handleShortenURL).Methods("POST")
 	h.router.HandleFunc("/{shortURL}", h.handleRedirect).Methods("GET")
-	h.router.HandleFunc("/{shortURL}", h.handleDeleteURL).Methods("DELETE")
+	h.router.HandleFunc("/url/{shortURL}", h.handleDeleteURL).Methods("DELETE")
 	h.router.HandleFunc("/url/{shortURL}/stats", h.handleGetUrlStats).Methods("GET")
 }
 

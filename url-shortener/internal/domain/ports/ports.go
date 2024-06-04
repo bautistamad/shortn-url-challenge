@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrUrlNotFound = errors.New("failed top get shorturl")
+	ErrUrlNotFound = errors.New("failed to get shorturl")
 )
 
 type CacheUrlRepository interface {
