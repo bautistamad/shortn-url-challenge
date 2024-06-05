@@ -35,12 +35,19 @@ func NewShortenerService(cacheRepo ports.CacheUrlRepository, dbRepo ports.Databa
 }
 
 func (s *Shortener) CreateShortUrl(longUrl string) (string, error) {
-	// validate if long url exist in db
-	shortUrl, err := s.dbRepository.SaveShortenUrl(defaultShortUrl+generateShortKey(), longUrl)
+
+	shortUrlKey := defaultShortUrl + generateShortKey()
+	shortUrl, err := s.dbRepository.SaveShortenUrl(shortUrlKey, longUrl)
 
 	if err != nil {
 		err = errors.Join(errSavingUrl, err)
 		return "", err
+	}
+
+	_, err = s.cacheRepository.SaveShortenUrl(shortUrl, longUrl)
+
+	if err != nil {
+		log.Println("cant save data on cache")
 	}
 
 	return shortUrl, nil
@@ -89,7 +96,6 @@ func (s *Shortener) GetLongUrl(key string) (string, error) {
 		return longUrl, nil
 	}
 
-	log.Printf("URL not found in cache: %s", longUrl)
 	longUrl, err = s.dbRepository.GetLongUrl(defaultShortUrl + key)
 
 	if err != nil {

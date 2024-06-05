@@ -61,6 +61,7 @@ func getConnectionString(config PostgresConfig) string {
 	if config.SSL {
 		sslMode = "enable"
 	} else {
+
 		sslMode = "disable"
 	}
 
@@ -120,21 +121,21 @@ func (d *PostgresRepository) GetLongUrl(shortUrl string) (string, error) {
 	return resultUrl.LongURL, result.Error
 }
 
-func (d *PostgresRepository) GetLongUrlByLongUrl(longUrl string) (string, error) {
-	var resultUrl entities.URL
+// func (d *PostgresRepository) GetLongUrlByLongUrl(longUrl string) (string, error) {
+// 	var resultUrl entities.URL
 
-	result := d.client.Where("longurl = ?", longUrl).Select("longurl").First(&resultUrl)
+// 	result := d.client.Where("longurl = ?", longUrl).Select("longurl").First(&resultUrl)
 
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return "", ports.ErrUrlNotFound
-		}
+// 	if result.Error != nil {
+// 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+// 			return "", ports.ErrUrlNotFound
+// 		}
 
-		return "", errGetURL
-	}
+// 		return "", errGetURL
+// 	}
 
-	return resultUrl.LongURL, result.Error
-}
+// 	return resultUrl.LongURL, result.Error
+// }
 
 func (d *PostgresRepository) GetUrlStats(shortUrl string) (*entities.URL, error) {
 	var url entities.URL

@@ -7,6 +7,7 @@ import (
 
 var (
 	ErrUrlNotFound = errors.New("failed to get shorturl")
+	ErrSavingUrl   = errors.New("error saving URL")
 )
 
 type CacheUrlRepository interface {
@@ -19,9 +20,9 @@ type DatabaseUrlRepository interface {
 	GetLongUrl(string) (string, error)
 	SaveShortenUrl(string, string) (string, error)
 	DeleteShortenUrl(entities.URL) error
-	GetLongUrlByLongUrl(string) (string, error)
 	GetUrlStats(string) (*entities.URL, error)
-	IncrementAccessCount(shortUrl string) error
+	IncrementAccessCount(string) error
+	// GetLongUrlByLongUrl(string) (string, error)
 }
 
 type ShorternService interface {
