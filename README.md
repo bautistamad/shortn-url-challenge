@@ -17,7 +17,7 @@ docker compose up
 
 #### Create URL Endpoint:
 Request
-```json
+```
 POST http://localhost/shorten
 {
     "long_url": "http://example.com/long-url"
