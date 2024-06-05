@@ -74,10 +74,7 @@ func getCreateShortUrlTestCases() []getCreateUrlTestCase {
 				},
 			},
 			cacheMockRepo: ports.MockCacheUrlRepositoryType{
-				SaveShortenUrl: &ports.CreateShortUrlOrErr{
-					ShortUrl: "",
-					Err:      errSavingUrl,
-				},
+				SaveShortenUrl: &ports.CreateShortUrlOrErr{},
 			},
 			expectedError: true,
 		},

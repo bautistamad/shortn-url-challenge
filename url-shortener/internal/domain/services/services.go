@@ -44,12 +44,6 @@ func (s *Shortener) CreateShortUrl(longUrl string) (string, error) {
 		return "", err
 	}
 
-	_, err = s.cacheRepository.SaveShortenUrl(shortUrl, longUrl)
-
-	if err != nil {
-		log.Println("cant save data on cache")
-	}
-
 	return shortUrl, nil
 }
 
