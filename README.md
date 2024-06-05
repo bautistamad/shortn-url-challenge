@@ -35,7 +35,7 @@ Response:
 
 #### Redirect
 ```
-GET /{key}
+GET http:/localhost/{key}
 ```
 #### Delete URL:
 Request
