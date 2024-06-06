@@ -13,7 +13,7 @@ func TestCreateShortUrl(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range getCreateShortUrlTestCases() {
-		tc := tc // Necesario para evitar que se sobrescriban los valores en el bucle
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
