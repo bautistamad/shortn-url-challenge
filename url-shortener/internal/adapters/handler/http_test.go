@@ -7,7 +7,9 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"url-shortener/internal/domain/entities"
 	"url-shortener/internal/domain/ports"
 
 	"github.com/gorilla/mux"
@@ -20,8 +22,8 @@ type (
 		mockService      ports.MockShorternServiceType
 		name             string
 		path             string
-		expectedStatus   int
 		expectedLocation string
+		expectedStatus   int
 	}
 )
 
@@ -77,7 +79,6 @@ func TestRedirectEndpoint(t *testing.T) {
 				location, err := recorder.Result().Location()
 				require.NoError(t, err)
 
-				// Verificar que la ubicación de la redirección es la esperada
 				assert.Equal(t, tc.expectedLocation, location.String())
 			}
 		})
@@ -85,19 +86,19 @@ func TestRedirectEndpoint(t *testing.T) {
 }
 
 func getShortenURLEndpointTestCases() []struct {
-	name             string
-	requestBody      interface{}
 	mockService      ports.MockShorternServiceType
-	expectedStatus   int
+	requestBody      interface{}
+	name             string
 	expectedShortURL string
+	expectedStatus   int
 	expectError      bool
 } {
 	return []struct {
-		name             string
-		requestBody      interface{}
 		mockService      ports.MockShorternServiceType
-		expectedStatus   int
+		requestBody      interface{}
+		name             string
 		expectedShortURL string
+		expectedStatus   int
 		expectError      bool
 	}{
 		{
@@ -170,6 +171,166 @@ func TestShortenURLEndpoint(t *testing.T) {
 				require.NoError(t, err)
 				assert.Equal(t, tc.expectedShortURL, response.ShortURL)
 			}
+		})
+	}
+}
+
+func TestHandleGetUrlStats(t *testing.T) {
+	tests := []struct {
+		mockService    ports.MockShorternServiceType
+		name           string
+		shortURL       string
+		expectedBody   string
+		expectedStatus int
+	}{
+		{
+			name:     "success",
+			shortURL: "abc123",
+			mockService: ports.MockShorternServiceType{
+				GetUrlStats: &ports.UrlStatsOrError{
+					Url: &entities.URL{
+						ShortURL:    "abc123",
+						LongURL:     "http://example.com",
+						AccessCount: 10,
+					},
+					Err: nil,
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody:   `{"longURL":"http://example.com","shortUrl":"abc123","id":"00000000-0000-0000-0000-000000000000","accessCount":10}`,
+		},
+		{
+			name:     "failed",
+			shortURL: "notfound",
+			mockService: ports.MockShorternServiceType{
+				GetUrlStats: &ports.UrlStatsOrError{
+					Err: ports.ErrUrlNotFound,
+				},
+			},
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   "URL not found",
+		},
+		{
+			name:     "server failed",
+			shortURL: "error",
+			mockService: ports.MockShorternServiceType{
+				GetUrlStats: &ports.UrlStatsOrError{
+					Err: errors.New("internal server error"),
+				},
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody:   "Internal server error: internal server error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockService := ports.NewMockShorternService(tt.mockService)
+
+			handler := &HTTPHandler{
+				shortenerService: mockService,
+			}
+
+			req, err := http.NewRequest("GET", "/stats/"+tt.shortURL, nil)
+			require.NoError(t, err)
+
+			rr := httptest.NewRecorder()
+
+			router := mux.NewRouter()
+			router.HandleFunc("/stats/{shortURL}", handler.handleGetUrlStats).Methods("GET")
+
+			router.ServeHTTP(rr, req)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+
+			if tt.expectedStatus == http.StatusOK {
+				var response entities.URL
+				err := json.Unmarshal(rr.Body.Bytes(), &response)
+				require.NoError(t, err)
+
+				expectedResponse := entities.URL{
+					ShortURL:    "abc123",
+					LongURL:     "http://example.com",
+					AccessCount: 10,
+				}
+
+				assert.Equal(t, expectedResponse.ShortURL, response.ShortURL)
+				assert.Equal(t, expectedResponse.LongURL, response.LongURL)
+				assert.Equal(t, expectedResponse.AccessCount, response.AccessCount)
+			} else {
+				assert.Equal(t, tt.expectedBody, rr.Body.String())
+			}
+		})
+	}
+}
+
+func TestHandleDeleteURL(t *testing.T) {
+	tests := []struct {
+		mockService    ports.MockShorternServiceType
+		name           string
+		shortURL       string
+		expectedBody   string
+		expectedStatus int
+	}{
+		{
+			name:     "success",
+			shortURL: "abc123",
+			mockService: ports.MockShorternServiceType{
+				DeleteUrl: &ports.DeleteUrlOrError{
+					DeletedUrl: "http://example.com",
+					Err:        nil,
+				},
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody:   `{"message":"URL deleted successfully","deleted_url":"http://example.com"}`,
+		},
+		{
+			name:     "failed not found",
+			shortURL: "notfound",
+			mockService: ports.MockShorternServiceType{
+				DeleteUrl: &ports.DeleteUrlOrError{
+					Err: ports.ErrUrlNotFound,
+				},
+			},
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   "URL not found",
+		},
+		{
+			name:     "failed server error",
+			shortURL: "error",
+			mockService: ports.MockShorternServiceType{
+				DeleteUrl: &ports.DeleteUrlOrError{
+					Err: errors.New("internal server error"),
+				},
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody:   "Internal server error: internal server error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockService := ports.NewMockShorternService(tt.mockService)
+
+			handler := &HTTPHandler{
+				shortenerService: mockService,
+			}
+
+			req, err := http.NewRequest("DELETE", "/url/"+tt.shortURL, nil)
+			require.NoError(t, err)
+
+			rr := httptest.NewRecorder()
+
+			router := mux.NewRouter()
+			router.HandleFunc("/url/{shortURL}", handler.handleDeleteURL).Methods("DELETE")
+
+			router.ServeHTTP(rr, req)
+
+			assert.Equal(t, tt.expectedStatus, rr.Code)
+
+			actualBody := strings.TrimSpace(rr.Body.String())
+
+			assert.Equal(t, tt.expectedBody, actualBody)
 		})
 	}
 }
