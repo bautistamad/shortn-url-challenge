@@ -2,7 +2,7 @@ Acortador de URLs
 
 ## High Level Design
 
-![image](https://github.com/bautistamad/shorten-url-challenge/assets/75149705/ab289d20-6d8c-417e-89b1-fd4e6d4ad038)
+<img width="1047" alt="image" src="https://github.com/bautistamad/shorten-url-challenge/assets/75149705/a8c48725-5356-4003-bf16-3492d71ab8db">
 
 
 ## Como ejecutar
