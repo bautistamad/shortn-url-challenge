@@ -1,4 +1,4 @@
-![Diagrama sin título drawio](https://github.com/bautistamad/shorten-url-challenge/assets/75149705/565c43d8-797f-47b4-afdb-f491f6abcc77)# Acortador de URLs
+Acortador de URLs
 
 ## High Level Design
 
