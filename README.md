@@ -4,7 +4,7 @@ Acortador de URLs
 
 <img width="1047" alt="image" src="https://github.com/bautistamad/shorten-url-challenge/assets/75149705/a8c48725-5356-4003-bf16-3492d71ab8db">
 
-
+Para la demo seleccione una base de datos relacional, en gran escala iria por una no relacional.
 ## Como ejecutar
 
 Para ejecutar el servicio es necesario tener docker-compose instalado, una vez instalado ejecutar el siguiente comando.
